@@ -1,12 +1,12 @@
 import flask
 import requests
-from data_integration.logging import events
+
 from data_integration import config
+from data_integration.logging import events
 
 
 class Slack(events.EventHandler):
     node_output: {tuple: {bool: [events.Event]}} = None
-
 
     def handle_event(self, event: events.Event):
         """
