@@ -35,42 +35,24 @@ class Slack(events.EventHandler):
                         event.node_path)) + ' | ' + '/'.join(event.node_path) + ' > _',
                     output=self.node_output[key][False], error_output=self.node_output[key][True])
 
-    def format_message(self, message: {} or str or [events.Event]):
-        """
-        Format a single slack message, when it is under dictionary type (key=format type keyword: value=string to be formatted)
-        Args:
-            message: The message to be formatted.
-        """
-
-        if type(message) is str:
-            return message
-        elif (type(message) is dict) and len(message) > 0:
-            key = str(list(message.keys())[0])
-            value = str(list(message.values())[0])
-            if type(key) is str:
-                if key == 'verbatim' or key == 'error':
-                    return '```' + value + '```'
-                elif key == 'bold':
-                    return '*' + value + '*'
-                elif key == 'italics':
-                    return '_' + value + '_'
-            return value
-        elif type(message) is list:
-            output, last_format = '', ''
-            for event in message:
-                if event.format == ('verbatim' or events.Output.Format.VERBATIM):
-                    if last_format == event.format:
-                        # append new verbatim line to the already initialized verbatim output
-                        output = output[0:-3] + '\n' + event.message + '```'
-                    else:
-                        output += '\n' + '```' + event.message + '```'
-                elif event.format == ('italics' or events.Output.Format.ITALICS):
-                    output += '\n_ ' + str(event.message).replace('\n', ' ') + ' _ '
+    def format_output(self, output_events: [events.Output]):
+        output, last_format = '', ''
+        for event in output_events:
+            if event.format == events.Output.Format.VERBATIM:
+                if last_format == event.format:
+                    # append new verbatim line to the already initialized verbatim output
+                    output = output[0:-3] + '\n' + event.message + '```'
                 else:
-                    output = '\n' + event.message
-                last_format = event.format
-            return output
-        return message
+                    output += '\n' + '```' + event.message + '```'
+            elif event.format == events.Output.Format.ITALICS:
+                for line in event.message.splitlines():
+                    output += '\n _ ' + str(line) + ' _ '
+            else:
+                output = '\n' + event.message
+
+            last_format = event.format
+        return output
+
 
     def send_message(self, message: str, output: events.Event = None, error_output: events.Event = None):
         """
@@ -85,11 +67,11 @@ class Slack(events.EventHandler):
 
         if (output):
             message['attachments'].append(
-                {'text': self.format_message(output),
+                {'text': self.format_output(output),
                  'mrkdwn_in': ['text']})
         if (error_output):
             message['attachments'].append(
-                {'text': self.format_message(error_output),
+                {'text': self.format_output(error_output),
                  'color': '#eb4d5c',
                  'mrkdwn_in': ['text']})
 
