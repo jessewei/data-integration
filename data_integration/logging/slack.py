@@ -81,21 +81,19 @@ class Slack(events.EventHandler):
             error_output: error output event as an attachment to the notification
         """
 
-        message = self.format_message(message)
+        message = {'text': message, 'attachments': []}
 
-        attachments = []
         if (output):
-            attachments.append(
+            message['attachments'].append(
                 {'text': self.format_message(output),
                  'mrkdwn_in': ['text']})
         if (error_output):
-            attachments.append(
+            message['attachments'].append(
                 {'text': self.format_message(error_output),
                  'color': '#eb4d5c',
                  'mrkdwn_in': ['text']})
 
-        response = requests.post('https://hooks.slack.com/services/' + config.slack_token(),
-                                 json={'text': message, 'attachments': attachments})
+        response = requests.post('https://hooks.slack.com/services/' + config.slack_token(), json=message)
 
         if response.status_code != 200:
             raise ValueError(
