@@ -5,7 +5,6 @@ from data_integration import config
 
 
 class Slack(events.EventHandler):
-    run_id: int = None
     node_output: {tuple: [events.Event]} = None
     node_error_output: {tuple: [events.Event]} = None
 
