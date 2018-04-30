@@ -103,7 +103,7 @@ class Slack(events.EventHandler):
                  'color': '#eb4d5c',
                  'mrkdwn_in': ['text']})
 
-        response = requests.post(config.webhook_url() + config.slack_token(),
+        response = requests.post('https://hooks.slack.com/services/' + config.slack_token(),
                                  json={'text': message, 'attachments': attachments})
 
         if response.status_code != 200:

@@ -62,11 +62,6 @@ def base_url() -> str:
     return 'http://127.0.0.1:5000'
 
 
-def webhook_url() -> str:
-    """Slack webhook url"""
-    return 'https://hooks.slack.com/services/'
-
-
 def slack_token() -> str:
     """
     When not None, then this slack webhook is notified of failed nodes.
