@@ -5,8 +5,8 @@ from data_integration import config
 
 
 class Slack(events.EventHandler):
-    node_output: {tuple: [events.Event]} = None
-    node_error_output: {tuple: [events.Event]} = None
+    node_output: {tuple: {bool: [events.Event]}} = None
+
 
     def handle_event(self, event: events.Event):
         """
@@ -17,22 +17,14 @@ class Slack(events.EventHandler):
         if isinstance(event, events.Output):
             key = tuple(event.node_path)
 
-            if event.is_error:
-                if not self.node_error_output:
-                    self.node_error_output = {}
+            if not self.node_output:
+                self.node_output = {}
 
-                if key in self.node_error_output:
-                    self.node_error_output[key].append(event)
-                else:
-                    self.node_error_output[key] = [event]
-            else:
-                if not self.node_output:
-                    self.node_output = {}
+            if not key in self.node_output:
+                self.node_output[key] = {True: [], False: []}
 
-                if key in self.node_output:
-                    self.node_output[key].append(event)
-                else:
-                    self.node_output[key] = [event]
+            self.node_output[key][event.is_error].append(event)
+
 
         elif isinstance(event, events.NodeFinished):
             key = tuple(event.node_path)
@@ -41,8 +33,7 @@ class Slack(events.EventHandler):
                     message='\n:baby_chick: Ooops, a hiccup in ' +
                             '_ <' + config.base_url() + flask.url_for('data_integration.node_page', path='/'.join(
                         event.node_path)) + ' | ' + '/'.join(event.node_path) + ' > _',
-                    # output='\n'.join(self.node_output[key]), error_output='\n'.join(self.node_error_output[key]))
-                    output=self.node_output[key], error_output=self.node_error_output[key])
+                    output=self.node_output[key][False], error_output=self.node_output[key][True])
 
     def format_message(self, message: {} or str or [events.Event]):
         """
